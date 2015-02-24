@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <mchck.h>
 
 #define CPU_CLOCK 48000000
 #define IO_PORT_WRITE_CYCLES 2
