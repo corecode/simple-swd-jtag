@@ -8,7 +8,8 @@ SRCS= swd-adapter.c swd-adapter.desc \
 # CPPFLAGS+= -I../contrib/CMSIS_DAP/Firmware
 CPPFLAGS+= -D'__forceinline=inline __attribute__((__always_inline__))'
 CPPFLAGS+= -D'__weak=__attribute__((__weak__))'
-CPPFLAGS+= -I.
+CPPFLAGS+= -DSTACK_SIZE=0x300
+CPPFLAGS+= -I. -I../contrib/CMSIS_DAP/Firmware
 
 BOARD= simple-swd-adapter
 

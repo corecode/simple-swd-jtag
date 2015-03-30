@@ -18,12 +18,11 @@ PORT_JTAG_SETUP(void)
         gpio_write(PIN_TCK_SWCLK, GPIO_HIGH);
         gpio_write(PIN_TMS_SWDIO, GPIO_HIGH);
         gpio_write(PIN_TDI, GPIO_HIGH);
-        gpio_write(PIN_nRESET, GPIO_HIGH);
 
         gpio_dir(PIN_TCK_SWCLK, GPIO_OUTPUT);
         gpio_dir(PIN_TMS_SWDIO, GPIO_OUTPUT);
         gpio_dir(PIN_TDI, GPIO_OUTPUT);
-        gpio_dir(PIN_nRESET, GPIO_OUTPUT);
+        gpio_dir(PIN_nRESET, GPIO_INPUT);
 }
 
 void
@@ -31,12 +30,11 @@ PORT_SWD_SETUP(void)
 {
         gpio_write(PIN_TCK_SWCLK, GPIO_HIGH);
         gpio_write(PIN_TMS_SWDIO, GPIO_HIGH);
-        gpio_write(PIN_nRESET, GPIO_HIGH);
 
         gpio_dir(PIN_TCK_SWCLK, GPIO_OUTPUT);
         gpio_dir(PIN_TMS_SWDIO, GPIO_OUTPUT);
         gpio_dir(PIN_TDI, GPIO_DISABLE);
-        gpio_dir(PIN_nRESET, GPIO_OUTPUT);
+        gpio_dir(PIN_nRESET, GPIO_INPUT);
 }
 
 void
@@ -57,43 +55,43 @@ PIN_SWCLK_TCK_IN(void)
 void
 PIN_SWCLK_TCK_SET(void)
 {
-        gpio_write(PIN_TCK_SWCLK, GPIO_HIGH);
+        fgpio_set(PIN_TCK_SWCLK, GPIO_HIGH);
 }
 
 void
 PIN_SWCLK_TCK_CLR(void)
 {
-        gpio_write(PIN_TCK_SWCLK, GPIO_LOW);
+        fgpio_clear(PIN_TCK_SWCLK, GPIO_LOW);
 }
 
 uint32_t
 PIN_SWDIO_TMS_IN(void)
 {
-        return (gpio_read(PIN_TMS_SWDIO));
+        return (fgpio_read(PIN_TMS_SWDIO));
 }
 
 void
 PIN_SWDIO_TMS_SET(void)
 {
-        gpio_write(PIN_TMS_SWDIO, GPIO_HIGH);
+        fgpio_set(PIN_TMS_SWDIO, GPIO_HIGH);
 }
 
 void
 PIN_SWDIO_TMS_CLR(void)
 {
-        gpio_write(PIN_TMS_SWDIO, GPIO_LOW);
+        fgpio_clear(PIN_TMS_SWDIO, GPIO_LOW);
 }
 
 uint32_t
 PIN_SWDIO_IN(void)
 {
-        return (gpio_read(PIN_TMS_SWDIO));
+        return (fgpio_read(PIN_TMS_SWDIO));
 }
 
 void
 PIN_SWDIO_OUT(uint32_t bit)
 {
-        gpio_write(PIN_TMS_SWDIO, bit);
+        gpio_write(PIN_TMS_SWDIO, bit & 1);
 }
 
 void
@@ -111,43 +109,48 @@ PIN_SWDIO_OUT_DISABLE(void)
 uint32_t
 PIN_TDI_IN(void)
 {
-        return (gpio_read(PIN_TDI));
+        return (fgpio_read(PIN_TDI));
 }
 
 void
 PIN_TDI_OUT(uint32_t bit)
 {
-        gpio_write(PIN_TDI, bit);
+        gpio_write(PIN_TDI, bit & 1);
 }
 
 uint32_t
 PIN_TDO_IN(void)
 {
-        return (gpio_read(PIN_TDO));
+        return (fgpio_read(PIN_TDO));
 }
 
 uint32_t
 PIN_nRESET_IN(void)
 {
-        return (gpio_read(PIN_nRESET));
+        return (fgpio_read(PIN_nRESET));
 }
 
 void
 PIN_nRESET_OUT(uint32_t bit)
 {
-        gpio_write(PIN_nRESET, bit);
+        if (bit == 0) {
+                gpio_write(PIN_nRESET, 0);
+                gpio_dir(PIN_nRESET, GPIO_OUTPUT);
+        } else {
+                gpio_dir(PIN_nRESET, GPIO_INPUT);
+        }
 }
 
 void
 LED_CONNECTED_OUT(uint32_t bit)
 {
-        gpio_write(PIN_LED_GREEN, bit);
+        gpio_write(PIN_LED_GREEN, bit & 1);
 }
 
 void
 LED_RUNNING_OUT(uint32_t bit)
 {
-        gpio_write(PIN_LED_RED, !bit);
+        gpio_write(PIN_LED_RED, !(bit & 1));
 }
 
 void
@@ -157,7 +160,7 @@ DAP_SETUP(void)
         pin_mode(PIN_TMS_SWDIO, PIN_MODE_RESET);
         pin_mode(PIN_TDI, PIN_MODE_RESET);
         pin_mode(PIN_TDO, PIN_MODE_RESET);
-        pin_mode(PIN_nRESET, PIN_MODE_RESET | PIN_MODE_OPEN_DRAIN_ON | PIN_MODE_PULLUP);
+        pin_mode(PIN_nRESET, PIN_MODE_RESET);
 
         gpio_dir(PIN_LED_RED, GPIO_OUTPUT);
         gpio_dir(PIN_LED_GREEN, GPIO_OUTPUT);
