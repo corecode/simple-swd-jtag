@@ -1,0 +1,33 @@
+device(:swd_dev) {
+  idVendor 0x2323
+  idProduct 0x2000
+  iManufacturer "sternlabs"
+  iProduct "simple swd adapter (CMSIS-DAP compatible)"
+
+  config {
+    #initfun :init_my_hid
+    hid(:hid_ctx) {
+      get_report :get_report
+      set_report :set_report
+      collection(0xff00, 1) {
+        report(:input) {
+          name :input_report
+          item([:data, 64]) {
+            logical_range 0..255
+            size 8
+            absolute
+          }
+        }
+        report(:output) {
+          name :output_report
+          item([:data, 64]) {
+            logical_range 0..255
+            size 8
+            absolute
+          }
+        }
+      }
+    }
+    #dfu_app {}
+  }
+}
