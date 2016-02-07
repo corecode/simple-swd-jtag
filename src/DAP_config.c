@@ -2,39 +2,52 @@
 #include "DAP_config.h"
 
 enum {
-        PIN_TCK_SWCLK = PIN_PTD5,
+        PIN_TCK_SWCLK = PIN_PTC5,
+        PIN_TCK_SWCLK_DIR = PIN_PTC7,
         PIN_TMS_SWDIO = PIN_PTC6,
-        PIN_TDI = PIN_PTD6,
-        PIN_TDO = PIN_PTD7,
-        PIN_nRESET = PIN_PTE0,
+        PIN_TMS_SWDIO_DIR = PIN_PTC4,
+        PIN_TDI = PIN_PTD7,
+        PIN_TDI_DIR = PIN_PTE0,
+        PIN_TDO = PIN_PTD6,
+        PIN_nRESET_INPUT = PIN_PTD4,
+        PIN_nRESET_OUTPUT = PIN_PTE30,
 
         PIN_LED_RED = PIN_PTB0,
         PIN_LED_GREEN = PIN_PTB1,
+
+        PIN_ADC_VTARGET_SENSE = 11,
+};
+
+enum {
+        MUX_OUTPUT = GPIO_HIGH,
+        MUX_INPUT = GPIO_LOW,
 };
 
 void
 PORT_JTAG_SETUP(void)
 {
         gpio_write(PIN_TCK_SWCLK, GPIO_HIGH);
+        gpio_write(PIN_TCK_SWCLK_DIR, MUX_OUTPUT);
         gpio_write(PIN_TMS_SWDIO, GPIO_HIGH);
+        gpio_write(PIN_TMS_SWDIO_DIR, MUX_OUTPUT);
         gpio_write(PIN_TDI, GPIO_HIGH);
 
         gpio_dir(PIN_TCK_SWCLK, GPIO_OUTPUT);
         gpio_dir(PIN_TMS_SWDIO, GPIO_OUTPUT);
         gpio_dir(PIN_TDI, GPIO_OUTPUT);
-        gpio_dir(PIN_nRESET, GPIO_INPUT);
 }
 
 void
 PORT_SWD_SETUP(void)
 {
         gpio_write(PIN_TCK_SWCLK, GPIO_HIGH);
+        gpio_write(PIN_TCK_SWCLK_DIR, MUX_OUTPUT);
         gpio_write(PIN_TMS_SWDIO, GPIO_HIGH);
+        gpio_write(PIN_TMS_SWDIO_DIR, MUX_OUTPUT);
 
         gpio_dir(PIN_TCK_SWCLK, GPIO_OUTPUT);
         gpio_dir(PIN_TMS_SWDIO, GPIO_OUTPUT);
         gpio_dir(PIN_TDI, GPIO_DISABLE);
-        gpio_dir(PIN_nRESET, GPIO_INPUT);
 }
 
 void
@@ -43,25 +56,30 @@ PORT_OFF(void)
         gpio_dir(PIN_TCK_SWCLK, GPIO_DISABLE);
         gpio_dir(PIN_TMS_SWDIO, GPIO_DISABLE);
         gpio_dir(PIN_TDI, GPIO_DISABLE);
-        gpio_dir(PIN_nRESET, GPIO_DISABLE);
+
+        gpio_write(PIN_TCK_SWCLK_DIR, MUX_INPUT);
+        gpio_write(PIN_TMS_SWDIO_DIR, MUX_INPUT);
+        gpio_write(PIN_TDI_DIR, MUX_INPUT);
+
+        gpio_write(PIN_nRESET_OUTPUT, GPIO_LOW);
 }
 
 uint32_t
 PIN_SWCLK_TCK_IN(void)
 {
-        return (gpio_read(PIN_TCK_SWCLK));
+        return (fgpio_read(PIN_TCK_SWCLK));
 }
 
 void
 PIN_SWCLK_TCK_SET(void)
 {
-        fgpio_set(PIN_TCK_SWCLK, GPIO_HIGH);
+        fgpio_set(PIN_TCK_SWCLK);
 }
 
 void
 PIN_SWCLK_TCK_CLR(void)
 {
-        fgpio_clear(PIN_TCK_SWCLK, GPIO_LOW);
+        fgpio_clear(PIN_TCK_SWCLK);
 }
 
 uint32_t
@@ -73,13 +91,13 @@ PIN_SWDIO_TMS_IN(void)
 void
 PIN_SWDIO_TMS_SET(void)
 {
-        fgpio_set(PIN_TMS_SWDIO, GPIO_HIGH);
+        fgpio_set(PIN_TMS_SWDIO);
 }
 
 void
 PIN_SWDIO_TMS_CLR(void)
 {
-        fgpio_clear(PIN_TMS_SWDIO, GPIO_LOW);
+        fgpio_clear(PIN_TMS_SWDIO);
 }
 
 uint32_t
@@ -91,12 +109,16 @@ PIN_SWDIO_IN(void)
 void
 PIN_SWDIO_OUT(uint32_t bit)
 {
-        gpio_write(PIN_TMS_SWDIO, bit & 1);
+        if (bit & 1)
+                fgpio_set(PIN_TMS_SWDIO);
+        else
+                fgpio_clear(PIN_TMS_SWDIO);
 }
 
 void
 PIN_SWDIO_OUT_ENABLE(void)
 {
+        gpio_write(PIN_TMS_SWDIO_DIR, MUX_OUTPUT);
         gpio_dir(PIN_TMS_SWDIO, GPIO_OUTPUT);
 }
 
@@ -104,6 +126,7 @@ void
 PIN_SWDIO_OUT_DISABLE(void)
 {
         gpio_dir(PIN_TMS_SWDIO, GPIO_INPUT);
+        gpio_write(PIN_TMS_SWDIO_DIR, MUX_INPUT);
 }
 
 uint32_t
@@ -115,7 +138,10 @@ PIN_TDI_IN(void)
 void
 PIN_TDI_OUT(uint32_t bit)
 {
-        gpio_write(PIN_TDI, bit & 1);
+        if (bit & 1)
+                fgpio_set(PIN_TDI);
+        else
+                fgpio_clear(PIN_TDI);
 }
 
 uint32_t
@@ -127,18 +153,13 @@ PIN_TDO_IN(void)
 uint32_t
 PIN_nRESET_IN(void)
 {
-        return (fgpio_read(PIN_nRESET));
+        return (fgpio_read(PIN_nRESET_INPUT));
 }
 
 void
 PIN_nRESET_OUT(uint32_t bit)
 {
-        if (bit == 0) {
-                gpio_write(PIN_nRESET, 0);
-                gpio_dir(PIN_nRESET, GPIO_OUTPUT);
-        } else {
-                gpio_dir(PIN_nRESET, GPIO_INPUT);
-        }
+        gpio_write(PIN_nRESET_OUTPUT, !bit);
 }
 
 void
@@ -157,14 +178,29 @@ void
 DAP_SETUP(void)
 {
         pin_mode(PIN_TCK_SWCLK, PIN_MODE_RESET);
+        pin_mode(PIN_TCK_SWCLK_DIR, PIN_MODE_RESET);
         pin_mode(PIN_TMS_SWDIO, PIN_MODE_RESET);
+        pin_mode(PIN_TMS_SWDIO_DIR, PIN_MODE_RESET);
         pin_mode(PIN_TDI, PIN_MODE_RESET);
+        pin_mode(PIN_TDI_DIR, PIN_MODE_RESET);
         pin_mode(PIN_TDO, PIN_MODE_RESET);
-        pin_mode(PIN_nRESET, PIN_MODE_RESET);
+        pin_mode(PIN_nRESET_INPUT, PIN_MODE_RESET);
+        pin_mode(PIN_nRESET_OUTPUT, PIN_MODE_RESET);
+
+        gpio_write(PIN_TCK_SWCLK_DIR, MUX_OUTPUT);
+        gpio_dir(PIN_TCK_SWCLK_DIR, GPIO_OUTPUT);
+        gpio_write(PIN_TMS_SWDIO_DIR, MUX_OUTPUT);
+        gpio_dir(PIN_TMS_SWDIO_DIR, GPIO_OUTPUT);
+        gpio_write(PIN_TDI_DIR, MUX_OUTPUT);
+        gpio_dir(PIN_TDI_DIR, GPIO_OUTPUT);
 
         gpio_dir(PIN_LED_RED, GPIO_OUTPUT);
         gpio_dir(PIN_LED_GREEN, GPIO_OUTPUT);
         gpio_dir(PIN_TDO, GPIO_INPUT);
+        gpio_dir(PIN_nRESET_INPUT, GPIO_INPUT);
+
+        gpio_write(PIN_nRESET_OUTPUT, GPIO_LOW);
+        gpio_dir(PIN_nRESET_OUTPUT, GPIO_OUTPUT);
 
         gpio_write(PIN_LED_RED, GPIO_LOW);
         gpio_write(PIN_LED_GREEN, GPIO_LOW);

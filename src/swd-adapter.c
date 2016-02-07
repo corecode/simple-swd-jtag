@@ -78,6 +78,11 @@ set_report(const enum hid_report_type type, const uint8_t report_id, void **data
 }
 
 void
+init_adapter(int enable)
+{
+}
+
+void
 main(void)
 {
         DAP_Setup();

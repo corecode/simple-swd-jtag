@@ -11,6 +11,8 @@ CPPFLAGS+= -D'__weak=__attribute__((__weak__))'
 CPPFLAGS+= -DSTACK_SIZE=0x300
 CPPFLAGS+= -I. -I../contrib/CMSIS_DAP/Firmware
 
+DFUPID=2000
+
 BOARD= simple-swd-adapter
 
-include ../contrib/mchck/build/mchck.mk
+include ../mchck/build/mchck.mk

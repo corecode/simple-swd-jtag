@@ -5,7 +5,7 @@ device(:swd_dev) {
   iProduct "simple swd adapter (CMSIS-DAP compatible)"
 
   config {
-    #initfun :init_my_hid
+    initfun :init_adapter
     hid(:hid_ctx) {
       get_report :get_report
       set_report :set_report
@@ -28,6 +28,8 @@ device(:swd_dev) {
         }
       }
     }
-    #dfu_app {}
+    dfu_app {
+      detach_func :sys_reset_to_loader
+    }
   }
 }
