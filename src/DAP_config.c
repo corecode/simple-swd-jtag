@@ -1,36 +1,17 @@
 #include <mchck.h>
 #include "DAP_config.h"
 
-enum {
-        PIN_TCK_SWCLK = PIN_PTC5,
-        PIN_TCK_SWCLK_DIR = PIN_PTC7,
-        PIN_TMS_SWDIO = PIN_PTC6,
-        PIN_TMS_SWDIO_DIR = PIN_PTC4,
-        PIN_TDI = PIN_PTD7,
-        PIN_TDI_DIR = PIN_PTE0,
-        PIN_TDO = PIN_PTD6,
-        PIN_nRESET_INPUT = PIN_PTD4,
-        PIN_nRESET_OUTPUT = PIN_PTE30,
-
-        PIN_LED_RED = PIN_PTB0,
-        PIN_LED_GREEN = PIN_PTB1,
-
-        PIN_ADC_VTARGET_SENSE = 11,
-};
-
-enum {
-        MUX_OUTPUT = GPIO_HIGH,
-        MUX_INPUT = GPIO_LOW,
-};
-
 void
 PORT_JTAG_SETUP(void)
 {
+        serial_setup(0);
+
         gpio_write(PIN_TCK_SWCLK, GPIO_HIGH);
         gpio_write(PIN_TCK_SWCLK_DIR, MUX_OUTPUT);
         gpio_write(PIN_TMS_SWDIO, GPIO_HIGH);
         gpio_write(PIN_TMS_SWDIO_DIR, MUX_OUTPUT);
         gpio_write(PIN_TDI, GPIO_HIGH);
+        gpio_write(PIN_TDI_DIR, MUX_OUTPUT);
 
         gpio_dir(PIN_TCK_SWCLK, GPIO_OUTPUT);
         gpio_dir(PIN_TMS_SWDIO, GPIO_OUTPUT);
@@ -47,12 +28,16 @@ PORT_SWD_SETUP(void)
 
         gpio_dir(PIN_TCK_SWCLK, GPIO_OUTPUT);
         gpio_dir(PIN_TMS_SWDIO, GPIO_OUTPUT);
+
         gpio_dir(PIN_TDI, GPIO_DISABLE);
+        serial_setup(1);
 }
 
 void
 PORT_OFF(void)
 {
+        serial_setup(0);
+
         gpio_dir(PIN_TCK_SWCLK, GPIO_DISABLE);
         gpio_dir(PIN_TMS_SWDIO, GPIO_DISABLE);
         gpio_dir(PIN_TDI, GPIO_DISABLE);
@@ -187,11 +172,16 @@ DAP_SETUP(void)
         pin_mode(PIN_nRESET_INPUT, PIN_MODE_RESET);
         pin_mode(PIN_nRESET_OUTPUT, PIN_MODE_RESET);
 
-        gpio_write(PIN_TCK_SWCLK_DIR, MUX_OUTPUT);
+        gpio_dir(PIN_TCK_SWCLK, GPIO_DISABLE);
+        gpio_write(PIN_TCK_SWCLK_DIR, MUX_INPUT);
         gpio_dir(PIN_TCK_SWCLK_DIR, GPIO_OUTPUT);
-        gpio_write(PIN_TMS_SWDIO_DIR, MUX_OUTPUT);
+
+        gpio_dir(PIN_TMS_SWDIO, GPIO_DISABLE);
+        gpio_write(PIN_TMS_SWDIO_DIR, MUX_INPUT);
         gpio_dir(PIN_TMS_SWDIO_DIR, GPIO_OUTPUT);
-        gpio_write(PIN_TDI_DIR, MUX_OUTPUT);
+
+        gpio_dir(PIN_TDI, GPIO_DISABLE);
+        gpio_write(PIN_TDI_DIR, MUX_INPUT);
         gpio_dir(PIN_TDI_DIR, GPIO_OUTPUT);
 
         gpio_dir(PIN_LED_RED, GPIO_OUTPUT);

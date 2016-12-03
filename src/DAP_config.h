@@ -1,6 +1,28 @@
 #include <stdint.h>
 #include <mchck.h>
 
+enum {
+        PIN_TCK_SWCLK = PIN_PTC5,
+        PIN_TCK_SWCLK_DIR = PIN_PTC7,
+        PIN_TMS_SWDIO = PIN_PTC6,
+        PIN_TMS_SWDIO_DIR = PIN_PTC4,
+        PIN_TDI = PIN_PTD7,
+        PIN_TDI_DIR = PIN_PTE0,
+        PIN_TDO = PIN_PTD6,
+        PIN_nRESET_INPUT = PIN_PTD4,
+        PIN_nRESET_OUTPUT = PIN_PTE30,
+
+        PIN_LED_RED = PIN_PTB0,
+        PIN_LED_GREEN = PIN_PTB1,
+
+        PIN_ADC_VTARGET_SENSE = 11,
+};
+
+enum {
+        MUX_OUTPUT = GPIO_HIGH,
+        MUX_INPUT = GPIO_LOW,
+};
+
 #define CPU_CLOCK 48000000
 #define IO_PORT_WRITE_CYCLES 2
 #define DAP_SWD 1
@@ -37,3 +59,7 @@ uint32_t RESET_TARGET(void);
 
 #define PIN_nTRST_IN() (0)
 #define PIN_nTRST_OUT(x) /**/
+
+
+void serial_setup(int enable);
+void serial_init(void);

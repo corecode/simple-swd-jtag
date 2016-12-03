@@ -6,7 +6,7 @@ device(:swd_dev) {
 
   config {
     initfun :init_adapter
-    hid(:hid_ctx) {
+    hid(:hid_ctx, "simple swd adapter (CMSIS-DAP compatible)") {
       get_report :get_report
       set_report :set_report
       collection(0xff00, 1) {
@@ -27,6 +27,11 @@ device(:swd_dev) {
           }
         }
       }
+    }
+    cdc(:serial) {
+      control_func :serial_control
+      data_ready :serial_data_ready
+      data_sent :serial_data_sent
     }
     dfu_app {
       detach_func :sys_reset_to_loader

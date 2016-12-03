@@ -80,6 +80,7 @@ set_report(const enum hid_report_type type, const uint8_t report_id, void **data
 void
 init_adapter(int enable)
 {
+        serial_init();
 }
 
 void
